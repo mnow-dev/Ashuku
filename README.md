@@ -5,7 +5,7 @@
 <p align="center">Trim, compress and send videos to Messenger, Google Chat and Instagram, sized to each app's limits.</p>
 
 <p align="center">
-  <a href="https://mnow-dev.github.io/Ashuku/"><b>Website</b></a> ·
+  <a href="https://ashuku.mnow.dev/"><b>Website</b></a> ·
   <a href="https://github.com/mnow-dev/Ashuku/releases/latest"><b>Download APK</b></a>
 </p>
 
