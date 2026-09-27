@@ -1,0 +1,84 @@
+name: Release
+
+# Push a tag matching pubspec.yaml's version (e.g. v1.2.0) to publish a signed APK.
+# Running it manually builds the APK as a workflow artifact without releasing.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.6'
+          channel: stable
+          cache: true
+
+      - name: Read version
+        run: |
+          version=$(grep '^version:' pubspec.yaml | sed 's/version: *//; s/+.*//')
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          if [[ "$GITHUB_REF" == refs/tags/* && "v$version" != "$GITHUB_REF_NAME" ]]; then
+            echo "::error::Tag $GITHUB_REF_NAME doesn't match pubspec.yaml version $version"
+            exit 1
+          fi
+
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+
+      - name: Decode signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ASHUKU_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::The ASHUKU_KEYSTORE_BASE64 secret is missing"
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
+          echo "ASHUKU_KEYSTORE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+
+      - name: Build APK
+        env:
+          ASHUKU_KEYSTORE_PASSWORD: ${{ secrets.ASHUKU_KEYSTORE_PASSWORD }}
+          ASHUKU_KEY_ALIAS: ${{ secrets.ASHUKU_KEY_ALIAS }}
+          ASHUKU_KEY_PASSWORD: ${{ secrets.ASHUKU_KEY_PASSWORD }}
+        run: flutter build apk --release --target-platform android-arm64
+
+      - name: Package
+        run: |
+          mkdir dist
+          cp build/app/outputs/flutter-apk/app-release.apk "dist/ashuku-$VERSION-arm64.apk"
+          # Never publish a debug-signed build: updates wouldn't install over it.
+          apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          certs=$("$apksigner" verify --print-certs dist/*.apk)
+          if [[ "$certs" != *"CN=Ashuku"* ]]; then
+            echo "::error::APK isn't signed with the release key"
+            exit 1
+          fi
+          (cd dist && sha256sum *.apk > SHA256SUMS.txt)
+          rm "$RUNNER_TEMP/release.jks"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ashuku-${{ env.VERSION }}
+          path: dist/
+
+      - uses: softprops/action-gh-release@v3
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dist/*
+          generate_release_notes: true
