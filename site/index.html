@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ashuku: shrink videos to fit any chat</title>
+  <meta name="description" content="Free, open-source Android app that trims and compresses videos to fit Messenger, Google Chat and Instagram limits, right on your phone.">
+  <meta name="theme-color" content="#4F5BD5">
+  <link rel="icon" href="img/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <meta property="og:title" content="Ashuku: shrink videos to fit any chat">
+  <meta property="og:description" content="Trim, compress and send videos to Messenger, Google Chat and Instagram, sized to each app's limits. Free and open source for Android.">
+  <meta property="og:image" content="https://mnow-dev.github.io/Ashuku/img/og.jpg">
+  <meta property="og:url" content="https://mnow-dev.github.io/Ashuku/">
+  <meta name="twitter:card" content="summary_large_image">
+  <style>
+    :root {
+      --bg: #fbfbfe;
+      --surface: #ffffff;
+      --surface-2: #f1f2fb;
+      --text: #15161f;
+      --muted: #5b5e73;
+      --line: #e3e4f0;
+      --brand: #4f5bd5;
+      --brand-ink: #ffffff;
+      --brand-soft: #e6e8fb;
+      --accent: #ff6b9d;
+      --shadow: 0 1px 2px rgb(20 22 60 / 6%), 0 12px 32px rgb(20 22 60 / 10%);
+      --radius: 20px;
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0e0f16;
+        --surface: #171823;
+        --surface-2: #1e2030;
+        --text: #eceefa;
+        --muted: #a2a5bd;
+        --line: #2a2c3e;
+        --brand: #8f98ff;
+        --brand-ink: #0e0f16;
+        --brand-soft: #262a52;
+        --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 16px 40px rgb(0 0 0 / 40%);
+        color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #0e0f16; --surface: #171823; --surface-2: #1e2030; --text: #eceefa; --muted: #a2a5bd;
+      --line: #2a2c3e; --brand: #8f98ff; --brand-ink: #0e0f16; --brand-soft: #262a52;
+      --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 16px 40px rgb(0 0 0 / 40%);
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--brand); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    img { max-width: 100%; display: block; }
+    .wrap { width: min(1120px, 100% - 32px); margin-inline: auto; }
+
+    /* Header */
+    header.top {
+      position: sticky; top: 0; z-index: 10;
+      background: color-mix(in srgb, var(--bg) 85%, transparent);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+    }
+    header.top .wrap { display: flex; align-items: center; gap: 24px; height: 64px; }
+    .brand { display: flex; align-items: center; gap: 10px; color: var(--text); font-weight: 700; font-size: 19px; }
+    .brand img { width: 32px; height: 32px; }
+    .brand:hover { text-decoration: none; }
+    nav { margin-left: auto; display: flex; gap: 22px; font-size: 15px; }
+    nav a { color: var(--muted); }
+    nav a:hover { color: var(--text); text-decoration: none; }
+    @media (max-width: 640px) { nav a:not(.gh) { display: none; } }
+
+    /* Hero */
+    .hero { padding: 72px 0 40px; overflow-x: clip; }
+    .hero .wrap { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 56px; align-items: center; }
+    .eyebrow {
+      display: inline-flex; gap: 8px; align-items: center;
+      padding: 6px 12px; border-radius: 999px;
+      background: var(--brand-soft); color: var(--brand);
+      font-size: 14px; font-weight: 600;
+    }
+    h1 { font-size: clamp(40px, 6vw, 64px); line-height: 1.05; letter-spacing: -0.03em; margin: 20px 0 18px; }
+    h1 .grad {
+      background: linear-gradient(100deg, var(--brand), var(--accent));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .lede { font-size: 20px; color: var(--muted); max-width: 34em; margin: 0 0 32px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 14px 22px; border-radius: 14px; font-weight: 600; font-size: 16px;
+      border: 1px solid transparent; transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .btn:hover { text-decoration: none; transform: translateY(-1px); }
+    .btn.primary { background: var(--brand); color: var(--brand-ink); box-shadow: 0 8px 24px color-mix(in srgb, var(--brand) 35%, transparent); }
+    .btn.secondary { background: var(--surface); color: var(--text); border-color: var(--line); }
+    .btn svg { width: 20px; height: 20px; flex: none; }
+    .fine { margin-top: 18px; font-size: 14px; color: var(--muted); }
+
+    .phone {
+      position: relative;
+      width: min(300px, 100%);
+      margin-inline: auto;
+      padding: 10px;
+      border-radius: 44px;
+      background: #111;
+      box-shadow: var(--shadow), inset 0 0 0 2px #2b2b2b;
+    }
+    .phone img { width: 100%; height: auto; aspect-ratio: 1080 / 2400; object-fit: cover; border-radius: 34px; background: var(--surface-2); }
+    .hero .phone { width: min(320px, 100%); transform: rotate(2deg); }
+    .glow { position: relative; }
+    .glow::before {
+      content: ""; position: absolute; inset: 10% -10%;
+      background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 35%, transparent), transparent),
+                  radial-gradient(closest-side at 30% 60%, color-mix(in srgb, var(--brand) 40%, transparent), transparent);
+      filter: blur(30px); z-index: -1;
+    }
+
+    @media (max-width: 860px) {
+      .hero { padding-top: 48px; }
+      .hero .wrap { grid-template-columns: 1fr; gap: 40px; }
+      .hero .phone { transform: none; width: min(280px, 80%); }
+    }
+
+    section { padding: 72px 0; }
+    h2 { font-size: clamp(30px, 4vw, 40px); letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 12px; }
+    .section-lede { color: var(--muted); font-size: 18px; margin: 0 0 40px; max-width: 40em; }
+
+    /* Screens */
+    .screens { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
+    .screens figure { margin: 0; }
+    .screens figcaption { text-align: center; margin-top: 16px; font-size: 15px; color: var(--muted); }
+    .screens figcaption strong { display: block; color: var(--text); font-size: 16px; }
+    @media (max-width: 960px) { .screens { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 520px) {
+      .screens { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 72%; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 12px; }
+      .screens figure { scroll-snap-align: center; }
+    }
+
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 26px; box-shadow: 0 1px 2px rgb(20 22 60 / 4%);
+    }
+    .card .ic {
+      width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
+      background: var(--brand-soft); color: var(--brand); margin-bottom: 16px;
+    }
+    .card .ic svg { width: 24px; height: 24px; }
+    .card h3 { margin: 0 0 6px; font-size: 18px; }
+    .card p { margin: 0; color: var(--muted); font-size: 15.5px; }
+    @media (max-width: 900px) { .features { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 580px) { .features { grid-template-columns: 1fr; } }
+
+    /* Presets */
+    .band { background: var(--surface-2); border-block: 1px solid var(--line); }
+    .table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); }
+    table { width: 100%; border-collapse: collapse; font-size: 16px; min-width: 520px; }
+    th, td { text-align: left; padding: 16px 20px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+    tr:last-child td { border-bottom: 0; }
+    td .app { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+    td .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+    td.note { color: var(--muted); font-size: 15px; }
+    .table-foot { margin-top: 14px; font-size: 14px; color: var(--muted); }
+    @media (max-width: 640px) {
+      table, tbody, tr, td { display: block; min-width: 0; }
+      thead { display: none; }
+      tr { padding: 16px 18px; border-bottom: 1px solid var(--line); }
+      tr:last-child { border-bottom: 0; }
+      td { border: 0; padding: 0; }
+      td:first-child { margin-bottom: 4px; }
+      td:nth-child(2), td:nth-child(3) { display: inline; font-size: 15px; }
+      td:nth-child(2)::after { content: " · "; color: var(--muted); }
+      td.note { margin-top: 4px; }
+    }
+
+    /* Steps */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; counter-reset: step; }
+    .step { position: relative; padding: 26px 26px 26px 26px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); }
+    .step::before {
+      counter-increment: step; content: counter(step);
+      display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+      background: var(--brand); color: var(--brand-ink); font-weight: 700; margin-bottom: 14px;
+    }
+    .step h3 { margin: 0 0 6px; font-size: 18px; }
+    .step p { margin: 0; color: var(--muted); font-size: 15.5px; }
+    @media (max-width: 780px) { .steps { grid-template-columns: 1fr; } }
+
+    /* Install */
+    .install { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+    .install ol { margin: 0; padding-left: 22px; }
+    .install li { margin-bottom: 10px; }
+    .install li::marker { color: var(--brand); font-weight: 700; }
+    .note-box { border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); padding: 24px; font-size: 15.5px; color: var(--muted); }
+    .note-box strong { color: var(--text); }
+    code { font: 14px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface-2); padding: 2px 6px; border-radius: 6px; }
+    @media (max-width: 780px) { .install { grid-template-columns: 1fr; } }
+
+    footer { padding: 40px 0 56px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14.5px; }
+    footer .wrap { display: flex; flex-wrap: wrap; gap: 16px 28px; align-items: center; }
+    footer .spacer { flex: 1; }
+    .jp { font-weight: 600; color: var(--text); }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="#"><img src="img/icon.svg" alt="">Ashuku</a>
+      <nav>
+        <a href="#features">Features</a>
+        <a href="#presets">Presets</a>
+        <a href="#install">Install</a>
+        <a class="gh" href="https://github.com/mnow-dev/Ashuku">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div>
+          <span class="eyebrow">Free &amp; open source · Android</span>
+          <h1>Shrink videos to <span class="grad">fit any chat.</span></h1>
+          <p class="lede">Trim, compress and send videos to Messenger, Google Chat and Instagram. Each one comes out sized for that app's limits, right on your phone.</p>
+          <div class="actions">
+            <a class="btn primary" id="download" href="https://github.com/mnow-dev/Ashuku/releases/latest">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M5 21h14"/></svg>
+              <span id="download-label">Download APK</span>
+            </a>
+            <a class="btn secondary" href="https://github.com/mnow-dev/Ashuku">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.7 5.4-5.27 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+              Source on GitHub
+            </a>
+          </div>
+          <p class="fine">Android 10+ · 64-bit · No ads, no tracking, no internet permission.</p>
+        </div>
+        <div class="glow">
+          <div class="phone"><img src="img/library.webp" alt="Ashuku's video library: a grid of camera videos with durations and selection circles" width="540" height="1200"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screens">
+      <div class="wrap">
+        <h2>From camera roll to chat in seconds</h2>
+        <p class="section-lede">Browse your videos, preview them by holding, trim, and send. Pick several and they're compressed and sent together.</p>
+        <div class="screens">
+          <figure>
+            <div class="phone"><img src="img/preview.webp" alt="A video playing in a pop-over while held, with a scrub time indicator" loading="lazy" width="540" height="1200"></div>
+            <figcaption><strong>Hold to preview</strong>Plays with sound. Slide to scrub.</figcaption>
+          </figure>
+          <figure>
+            <div class="phone"><img src="img/editor.webp" alt="The editor with a filmstrip trimmer and preset cards" loading="lazy" width="540" height="1200"></div>
+            <figcaption><strong>Trim and pick a target</strong>One tap sets the right limits.</figcaption>
+          </figure>
+          <figure>
+            <div class="phone"><img src="img/select.webp" alt="Three videos selected in order with numbered badges" loading="lazy" width="540" height="1200"></div>
+            <figcaption><strong>Send several at once</strong>Numbered in the order they'll send.</figcaption>
+          </figure>
+          <figure>
+            <div class="phone"><img src="img/result.webp" alt="Compression results showing each video fits the Messenger limit" loading="lazy" width="540" height="1200"></div>
+            <figcaption><strong>Guaranteed to fit</strong>Then straight into the chat.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="band">
+      <div class="wrap">
+        <h2>Small files, without the guesswork</h2>
+        <p class="section-lede">Ashuku works out the bitrate and resolution from the size limit and the clip's length. You just choose where it's going.</p>
+        <div class="features">
+          <div class="card">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+            <h3>Fits the limit, every time</h3>
+            <p>It aims just under the size cap and picks the sharpest resolution the budget allows. If the encoder overshoots, it quietly re-encodes.</p>
+          </div>
+          <div class="card">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="m15 15 5 3-5 3z"/></svg></div>
+            <h3>Browse and preview</h3>
+            <p>Your camera videos in a grid. Hold any of them to watch with sound, and slide sideways to jump through it.</p>
+          </div>
+          <div class="card">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg></div>
+            <h3>Precise trimming</h3>
+            <p>Drag the filmstrip handles, or set the start and end at the playhead. Clips that are too long for a preset get a one-tap fix.</p>
+          </div>
+          <div class="card">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4z"/></svg></div>
+            <h3>Batch and send all</h3>
+            <p>Select several videos, compress them in one go, and share them together, or straight to Messenger or Google Chat.</p>
+          </div>
+          <div class="card">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg></div>
+            <h3>Fast and on-device</h3>
+            <p>Uses the phone's hardware encoder. A 4K clip shrinks in seconds, and HDR is converted so it looks right in every chat.</p>
+          </div>
+          <div class="card">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+            <h3>Private by design</h3>
+            <p>The app has no internet permission at all. Your videos never leave the phone until you share them yourself.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="presets">
+      <div class="wrap">
+        <h2>Presets for where it's going</h2>
+        <p class="section-lede">Each preset knows its app's limits. You can still adjust the size, resolution, frame rate and audio yourself.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Send to</th><th>Size limit</th><th>Resolution</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td><span class="app"><span class="dot" style="background:#0A7CFF"></span>Messenger</span></td><td>25 MB</td><td>up to 720p</td><td class="note">Messenger re-compresses anyway, so 720p looks the same and sends faster.</td></tr>
+              <tr><td><span class="app"><span class="dot" style="background:#00AC47"></span>Google Chat</span></td><td>200 MB</td><td>up to 1080p</td><td class="note">Anything bigger would need a Drive link.</td></tr>
+              <tr><td><span class="app"><span class="dot" style="background:#E1306C"></span>Instagram DM</span></td><td>25 MB · 60 s</td><td>up to 1080p</td><td class="note">Sent to Instagram's Messages directly.</td></tr>
+              <tr><td><span class="app"><span class="dot" style="background:#C13584"></span>Instagram Reel</span></td><td>3 min</td><td>1080p, high bitrate</td><td class="note">Instagram re-encodes on upload, so it gets the best source.</td></tr>
+              <tr><td><span class="app"><span class="dot" style="background:#7C7C8A"></span>Custom</span></td><td>5 MB – 2 GB</td><td>auto or fixed</td><td class="note">Your numbers.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="table-foot">Limits as of September 2026. Apps change them now and then, and the presets are easy to update.</p>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="wrap">
+        <h2>How it works</h2>
+        <p class="section-lede">Three steps, no settings to learn.</p>
+        <div class="steps">
+          <div class="step"><h3>Pick</h3><p>Choose from your camera roll, record something new, or share a video from Google Photos into Ashuku.</p></div>
+          <div class="step"><h3>Choose where it's going</h3><p>Tap Messenger, Google Chat or Instagram. Trim if you like, and the estimate updates as you go.</p></div>
+          <div class="step"><h3>Send</h3><p>Compress, then send straight to the app, share anywhere, or save a copy to your gallery.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="install">
+      <div class="wrap">
+        <h2>Install</h2>
+        <p class="section-lede">Ashuku isn't on the Play Store. Install it from GitHub Releases instead.</p>
+        <div class="install">
+          <ol>
+            <li><a id="download-2" href="https://github.com/mnow-dev/Ashuku/releases/latest">Download the latest APK</a> on your phone.</li>
+            <li>Open it. If Android asks, allow your browser or file manager to install apps.</li>
+            <li>To update, download the new version and install it over the old one. Nothing is lost.</li>
+          </ol>
+          <div class="note-box">
+            <strong>Want to check the download?</strong> Every release lists SHA-256 checksums, and the APK is built and signed by
+            <a href="https://github.com/mnow-dev/Ashuku/actions/workflows/release.yml">GitHub Actions</a> from the public source.
+            You can also build it yourself with <code>flutter build apk</code>.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span><span class="jp">圧縮 (asshuku)</span> is Japanese for "compression".</span>
+      <span class="spacer"></span>
+      <a href="https://github.com/mnow-dev/Ashuku">GitHub</a>
+      <a href="https://github.com/mnow-dev/Ashuku/blob/main/LICENSE">Apache 2.0</a>
+      <span>© 2026 mnow.dev</span>
+    </div>
+  </footer>
+
+  <script>
+    // Point the download buttons at the latest release's APK when GitHub's API is reachable.
+    fetch('https://api.github.com/repos/mnow-dev/Ashuku/releases/latest')
+      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then((release) => {
+        const apk = release.assets.find((a) => a.name.endsWith('.apk'));
+        if (!apk) return;
+        const mb = Math.round(apk.size / 1e6);
+        for (const id of ['download', 'download-2']) document.getElementById(id).href = apk.browser_download_url;
+        document.getElementById('download-label').textContent = `Download ${release.tag_name} · ${mb} MB`;
+      })
+      .catch(() => {});
+  </script>
+</body>
+</html>

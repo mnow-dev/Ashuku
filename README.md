@@ -1,6 +1,28 @@
-# Ashuku (圧縮)
+<p align="center"><img src="site/img/icon.svg" width="88" alt=""></p>
 
-Android app that trims and compresses videos so they fit the chat you're sending them to.
+<h1 align="center">Ashuku (圧縮)</h1>
+
+<p align="center">Trim, compress and send videos to Messenger, Google Chat and Instagram, sized to each app's limits.</p>
+
+<p align="center">
+  <a href="https://mnow-dev.github.io/Ashuku/"><b>Website</b></a> ·
+  <a href="https://github.com/mnow-dev/Ashuku/releases/latest"><b>Download APK</b></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/mnow-dev/Ashuku/releases/latest"><img src="https://img.shields.io/github/v/release/mnow-dev/Ashuku?color=4f5bd5" alt="Latest release"></a>
+  <a href="https://github.com/mnow-dev/Ashuku/actions/workflows/ci.yml"><img src="https://github.com/mnow-dev/Ashuku/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/mnow-dev/Ashuku?color=4f5bd5" alt="License"></a>
+</p>
+
+<p align="center">
+  <img src="site/img/library.webp" width="200" alt="Video library">
+  <img src="site/img/preview.webp" width="200" alt="Hold to preview">
+  <img src="site/img/editor.webp" width="200" alt="Editor with trimmer and presets">
+  <img src="site/img/result.webp" width="200" alt="Batch results">
+</p>
+
+## Features
 
 - Browse your videos in the app (Camera album first, then other albums). Tap one to edit it, hold it to preview it with sound, or tap ○ on several to batch them.
 - Or use the system picker, record a video, or share one in from another app (e.g. Google Photos → Share → Ashuku).
@@ -8,6 +30,7 @@ Android app that trims and compresses videos so they fit the chat you're sending
 - Presets: Messenger, Google Chat, Instagram DM, Instagram Reel, Custom. You can override the size limit, resolution, frame rate, and audio.
 - Exports H.264/AAC MP4 on the hardware encoder via Media3 Transformer. HDR is converted to SDR.
 - Send straight to the preset's app, use the share sheet, or save to `Movies/Ashuku`.
+- Private: the app has no internet permission, so videos only leave the phone when you share them.
 - Batch: compress several videos with one preset (the size limit applies to each one), then send them all in one share. Instagram DMs only take one video per share, so there you get a send button on each video.
 
 ## Install
@@ -64,3 +87,7 @@ The [Release workflow](.github/workflows/release.yml) checks that the tag matche
 | `ASHUKU_KEY_PASSWORD` | key password |
 
 Keep a backup of the keystore. Without it, new builds can't update installed copies.
+
+## License
+
+[Apache License 2.0](LICENSE). © 2026 mnow.dev
