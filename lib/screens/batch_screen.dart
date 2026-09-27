@@ -93,7 +93,7 @@ class _BatchScreenState extends State<BatchScreen> {
     final lowBitrate = plans.values.any((p) => p.videoKbps < 400);
 
     return Scaffold(
-      appBar: AppBar(title: Text('${_items.length} videos')),
+      appBar: AppBar(title: Text(_items.length == 1 ? '1 video' : '${_items.length} videos')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         children: [
@@ -191,6 +191,7 @@ class _BatchTile extends StatelessWidget {
         path: src.path,
         placeholder: thumbnail,
         aspectRatio: src.aspectRatio,
+        durationMs: src.durationMs,
         caption: '${formatDuration(src.durationMs, tenths: false)} · ${formatBytes(src.sizeBytes)}',
       ),
       child: ListTile(

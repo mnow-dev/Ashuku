@@ -276,6 +276,7 @@ class _VideoCell extends StatelessWidget {
         uri: video.uri,
         placeholder: thumbnail,
         aspectRatio: video.aspectRatio,
+        durationMs: video.durationMs,
         caption:
             '${formatDuration(video.durationMs, tenths: false)} · ${formatBytes(video.sizeBytes)} · '
             '${d.day} ${_months[d.month - 1]} ${d.year}',

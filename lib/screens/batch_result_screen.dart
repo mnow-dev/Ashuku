@@ -87,7 +87,7 @@ class _BatchResultScreenState extends State<BatchResultScreen> {
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
           Text(
-            '${_outcomes.length} videos · ${formatBytes(totalOut)}',
+            '${_outcomes.length} ${_outcomes.length == 1 ? 'video' : 'videos'} · ${formatBytes(totalOut)}',
             textAlign: TextAlign.center,
             style: theme.textTheme.headlineMedium,
           ),
@@ -107,7 +107,7 @@ class _BatchResultScreenState extends State<BatchResultScreen> {
               ),
               label: Text(
                 over == 0
-                    ? 'Each fits ${preset.name} (≤ ${formatMb(limit / 1e6)})'
+                    ? '${_outcomes.length == 1 ? 'Fits' : 'Each fits'} ${preset.name} (≤ ${formatMb(limit / 1e6)})'
                     : '$over over the ${formatMb(limit / 1e6)} limit',
               ),
             ),
@@ -214,6 +214,7 @@ class _OutputTile extends StatelessWidget {
         path: out.path,
         placeholder: thumbnail,
         aspectRatio: out.aspectRatio,
+        durationMs: out.durationMs,
         caption: '${formatBytes(out.sizeBytes)} · ${out.width}×${out.height}',
       ),
       child: ListTile(

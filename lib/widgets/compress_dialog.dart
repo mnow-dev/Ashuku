@@ -86,15 +86,28 @@ class _CompressDialogState extends State<CompressDialog> {
         _progress = 0;
         _pass = 1;
       });
-      try {
-        outcomes.add(await _compress(job));
-      } on CompressException catch (e) {
-        if (e.cancelled) break;
-        if (_count == 1) {
-          if (mounted) setState(() => _error = e.toString());
-          return;
+      // One retry: codec setup can fail transiently when other apps hold the hardware codecs.
+      for (var attempt = 1; attempt <= 2; attempt++) {
+        try {
+          outcomes.add(await _compress(job));
+          break;
+        } on CompressException catch (e) {
+          if (e.cancelled || _cancelled) break;
+          if (attempt < 2) {
+            if (mounted) {
+              setState(() {
+                _pass = 1;
+                _progress = 0;
+              });
+            }
+            continue;
+          }
+          if (_count == 1) {
+            if (mounted) setState(() => _error = e.toString());
+            return;
+          }
+          failures.add(CompressFailure(job.source, e.toString()));
         }
-        failures.add(CompressFailure(job.source, e.toString()));
       }
     }
     if (!mounted) return;

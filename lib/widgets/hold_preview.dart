@@ -11,8 +11,14 @@ import '../presets.dart';
 
 /// What to play while a thumbnail is held: a file [path] or a content [uri].
 class PreviewSource {
-  const PreviewSource({this.path, this.uri, this.placeholder, this.aspectRatio, this.caption})
-    : assert(path != null || uri != null);
+  const PreviewSource({
+    this.path,
+    this.uri,
+    this.placeholder,
+    this.aspectRatio,
+    this.durationMs,
+    this.caption,
+  }) : assert(path != null || uri != null);
 
   final String? path;
   final String? uri;
@@ -20,6 +26,9 @@ class PreviewSource {
   /// Shown until the first video frame is ready.
   final ImageProvider? placeholder;
   final double? aspectRatio;
+
+  /// Known length, used for scrubbing before the player has loaded.
+  final int? durationMs;
   final String? caption;
 }
 
@@ -227,7 +236,11 @@ class _PeekViewState extends State<_PeekView> with SingleTickerProviderStateMixi
                                       if (ready) VideoPlayer(_player),
                                       Align(
                                         alignment: Alignment.bottomCenter,
-                                        child: _ScrubBar(player: _player, scrub: widget.scrub),
+                                        child: _ScrubBar(
+                                          player: _player,
+                                          scrub: widget.scrub,
+                                          fallbackDurationMs: source.durationMs,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -236,7 +249,12 @@ class _PeekViewState extends State<_PeekView> with SingleTickerProviderStateMixi
                             ),
                           ),
                           const SizedBox(height: 14),
-                          _Caption(player: _player, scrub: widget.scrub, caption: source.caption),
+                          _Caption(
+                            player: _player,
+                            scrub: widget.scrub,
+                            fallbackDurationMs: source.durationMs,
+                            caption: source.caption,
+                          ),
                         ],
                       ),
                     ),
@@ -253,9 +271,10 @@ class _PeekViewState extends State<_PeekView> with SingleTickerProviderStateMixi
 
 /// Playback progress; follows the finger directly while scrubbing.
 class _ScrubBar extends StatelessWidget {
-  const _ScrubBar({required this.player, required this.scrub});
+  const _ScrubBar({required this.player, required this.scrub, this.fallbackDurationMs});
   final VideoPlayerController player;
   final ValueListenable<double?> scrub;
+  final int? fallbackDurationMs;
 
   @override
   Widget build(BuildContext context) {
@@ -264,7 +283,7 @@ class _ScrubBar extends StatelessWidget {
       listenable: Listenable.merge([player, scrub]),
       builder: (context, _) {
         final value = player.value;
-        final durationMs = value.duration.inMilliseconds;
+        final durationMs = value.isInitialized ? value.duration.inMilliseconds : (fallbackDurationMs ?? 0);
         final scrubbing = scrub.value != null;
         // Follow the finger while it moves (player paused), live playback once it rests.
         final fraction = scrubbing && !value.isPlaying
@@ -288,10 +307,11 @@ class _ScrubBar extends StatelessWidget {
 
 /// The video's details, replaced by the scrub time while sliding.
 class _Caption extends StatelessWidget {
-  const _Caption({required this.player, required this.scrub, required this.caption});
+  const _Caption({required this.player, required this.scrub, required this.caption, this.fallbackDurationMs});
   final VideoPlayerController player;
   final ValueListenable<double?> scrub;
   final String? caption;
+  final int? fallbackDurationMs;
 
   @override
   Widget build(BuildContext context) {
@@ -301,7 +321,7 @@ class _Caption extends StatelessWidget {
         final fraction = scrub.value;
         if (fraction != null) {
           final value = player.value;
-          final durationMs = value.duration.inMilliseconds;
+          final durationMs = value.isInitialized ? value.duration.inMilliseconds : (fallbackDurationMs ?? 0);
           final positionMs = value.isPlaying
               ? value.position.inMilliseconds
               : (durationMs * fraction).round();
