@@ -37,7 +37,7 @@
 
 Download `ashuku-<version>-arm64.apk` from [Releases](https://github.com/mnow-dev/Ashuku/releases) and open it on your phone (allow installs from your browser or file manager when asked). Updates install over the previous version.
 
-Needs Android 10+ on a 64-bit ARM phone (any phone from the last several years).
+Needs Android 10+ on a 64-bit ARM phone (any phone from the last several years). See the [changelog](CHANGELOG.md) for what's new.
 
 ## How sizing works
 
@@ -60,7 +60,10 @@ Preset limits (checked September 2026; apps change these):
 - `lib/engine.dart`: Dart side of the channel
 - `lib/presets.dart`: presets and the encode planner (unit-tested in `test/planner_test.dart`)
 - `lib/screens/`: home/library, editor, result, and batch screens
-- `lib/widgets/hold_preview.dart`: hold-to-preview pop-over
+- `lib/widgets/`: hold-to-preview pop-over, trimmer, preset grid and Adjust panel, compress queue dialog
+- `site/`: the website, deployed to [ashuku.mnow.dev](https://ashuku.mnow.dev) by the Website workflow
+
+[`CLAUDE.md`](CLAUDE.md) has more detail on the architecture and the gotchas.
 
 ## Build
 
@@ -74,10 +77,11 @@ Release builds are signed with the key in `android/key.properties` (gitignored).
 
 ## Releasing
 
-1. Bump `version:` in `pubspec.yaml` (e.g. `1.1.0+2`; the number after `+` must go up every release).
-2. Commit, then tag and push: `git tag v1.1.0 && git push origin main v1.1.0`
+1. In [`CHANGELOG.md`](CHANGELOG.md), move the **Unreleased** entries into a new `## [1.1.0] - YYYY-MM-DD` section.
+2. Bump `version:` in `pubspec.yaml` (e.g. `1.1.0+3`; the number after `+` must go up every release).
+3. Commit, then tag and push: `git tag v1.1.0 && git push origin main v1.1.0`
 
-The [Release workflow](.github/workflows/release.yml) checks that the tag matches `pubspec.yaml`, runs the analyzer and tests, builds a signed APK, and publishes it with SHA-256 checksums on the Releases page. It needs these repository secrets:
+The [Release workflow](.github/workflows/release.yml) checks that the tag matches `pubspec.yaml` and that the changelog has a section for that version. It then runs the analyzer and tests, builds a signed APK, and publishes it with SHA-256 checksums. The changelog section becomes the release notes. It needs these repository secrets:
 
 | Secret | Value |
 |---|---|
